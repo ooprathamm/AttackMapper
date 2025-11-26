@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attack Surface Report - {{ target }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent: #0f172a;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+            --info: #3b82f6;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .meta {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .risk-score-container {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .risk-score {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .risk-level {
+            font-size: 1.25rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+        }
+
+        .risk-critical {
+            color: var(--danger);
+            background: #fef2f2;
+        }
+
+        .risk-high {
+            color: var(--warning);
+            background: #fffbeb;
+        }
+
+        .risk-medium {
+            color: var(--info);
+            background: #eff6ff;
+        }
+
+        .risk-low {
+            color: var(--success);
+            background: #ecfdf5;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--text-secondary);
+            font-weight: 600;
+            background: #f1f5f9;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.125rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: #f1f5f9;
+            color: var(--text-secondary);
+            margin-right: 0.25rem;
+            border: 1px solid var(--border);
+        }
+
+        .matrix {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .tactic-col {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .tactic-title {
+            background: #e2e8f0;
+            padding: 0.75rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .technique-list {
+            padding: 0.5rem;
+        }
+
+        .technique-item {
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            color: var(--text-primary);
+            transition: transform 0.1s;
+        }
+
+        .technique-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-color: var(--accent);
+        }
+
+        .technique-id {
+            font-weight: 700;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            display: block;
+            margin-bottom: 0.125rem;
+        }
+
+        footer {
+            margin-top: 4rem;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            border-top: 1px solid var(--border);
+            padding-top: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>Attack Surface Report</h1>
+                <div class="meta">Generated on {{ scan_date }}</div>
+            </div>
+            <div class="meta">Target: <strong>{{ target }}</strong></div>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <h2>Security Risk Score</h2>
+                <div class="risk-score-container">
+                    <span class="risk-score 
+                        {% if risk_level == 'Critical' %}risk-critical
+                        {% elif risk_level == 'High' %}risk-high
+                        {% elif risk_level == 'Medium' %}risk-medium
+                        {% else %}risk-low{% endif %}" style="background: none; padding: 0;">
+                        {{ risk_score }}
+                    </span>
+                    <span class="risk-level 
+                        {% if risk_level == 'Critical' %}risk-critical
+                        {% elif risk_level == 'High' %}risk-high
+                        {% elif risk_level == 'Medium' %}risk-medium
+                        {% else %}risk-low{% endif %}">
+                        {{ risk_level }}
+                    </span>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem;">
+                    Score calculated based on open ports, service criticality, and mapped adversary techniques.
+                </p>
+            </div>
+            <div class="card">
+                <h2>Exposure Metrics</h2>
+                <div style="display: flex; justify-content: space-between; margin-top: 1rem;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--text-primary);">{{ open_ports_count
+                            }}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Open
+                            Ports</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--text-primary);">{{
+                            mapped_techniques_count }}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Mapped
+                            Techniques</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--text-primary);">{{ services|length
+                            }}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">
+                            Services</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 2rem;">
+            <h2>Detected Services & Capabilities</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Port</th>
+                        <th style="width: 150px;">Service</th>
+                        <th>Product / Version</th>
+                        <th>Associated MITRE Techniques</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for service in services %}
+                    <tr>
+                        <td><span style="font-family: monospace; font-weight: 600;">{{ service.port }}/{{
+                                service.protocol }}</span></td>
+                        <td>{{ service.name }}</td>
+                        <td>
+                            {% if service.product %}
+                            {{ service.product }} <span style="color: var(--text-secondary);">{{ service.version
+                                }}</span>
+                            {% else %}
+                            <span style="color: var(--text-secondary); font-style: italic;">Unknown</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% for tech in service.techniques %}
+                            <span class="tag" title="{{ tech.name }} - {{ tech.description }}">
+                                {{ tech.id }}
+                            </span>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>MITRE ATT&CK Matrix</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">
+                Techniques mapped from observed network services. This is a subset of the full ATT&CK matrix relevant to
+                the scan results.
+            </p>
+            <div class="matrix">
+                {% for tactic, techniques in matrix.items() %}
+                <div class="tactic-col">
+                    <div class="tactic-title">{{ tactic }}</div>
+                    <div class="technique-list">
+                        {% for tech in techniques %}
+                        <div class="technique-item" title="{{ tech.description }}">
+                            <span class="technique-id">{{ tech.id }}</span>
+                            {{ tech.name }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <footer>
+            <p>Generated by Attack Surface Mapper | Confidential Security Report</p>
+        </footer>
+    </div>
+</body>
+
+</html>
